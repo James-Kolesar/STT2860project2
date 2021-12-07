@@ -1,0 +1,113 @@
+---
+title: "Project 2: Final Presentation"
+author: "James Kolesar"
+date: '`r format(Sys.time(), "%A, %B %d, %Y @ %I:%M %p")`'
+output: 
+  html_document: 
+    theme: readable
+    highlight: tango
+    code_folding: hide
+---
+
+```{r globaloptions, include = FALSE}
+knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE,
+  comment = NA
+)
+```
+
+## The Billionaire 1%
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(readxl)
+library(usmap)
+
+billionaires = read_csv("../dataraw/billionaires_2021_10_31.csv")
+new_billionaires = billionaires %>%
+  mutate(firstLetter = substr(Name, 1, 1))
+
+ggplot(data = new_billionaires, aes(x = 500 - Rank, y = Total_Net_Worth_Bil)) +
+  geom_point(size = 0.5) +
+  theme_bw() +
+  labs(title = "Total Net Worth of Ranked Billionaires on the Bloomberg Billionaire Index", y = "Net Worth in Billions", x = "Rank on the Index (1 = Poorest, 500 = Least Poor)")
+```
+
+This is outrageous! Where's Frits Goldschmeding? Cliff Obrecht? It looks like Wall Street is due for another occupation, but before we get our pitchforks and picket signs, we should figure out who exactly should be protesting whom.
+
+```{r}
+billVector = c(rep(NULL, 500))
+total = 0
+for (i in 1:500) {
+  total = total + new_billionaires$Total_Net_Worth_Bil[501-i]
+  billVector[i] = total
+}
+
+new_new_bill = new_billionaires %>%
+  mutate(integral = billVector)
+
+ggplot(data = new_billionaires, aes(x = c(1:500), y = billVector)) +
+  geom_point(size = 0.5) +
+  theme_bw() +
+  geom_hline(yintercept = 4265.125) +
+  geom_vline(xintercept = 419) +
+  labs(title = "Sum of Total Net Worths of all Lower Billionaires on the Index", y = "Sum of Net Worths in Billions", x = "Index Ranking")
+```
+
+After writing code to simulate the "area under the curve" of our initial plot, there is a total of $8,530.25 billion shared amongst the top 500 billionaires, and 4,281.7 shared amongst the top 80. This means that the top 16% of billionaires on Bloomberg's Billionaire Index control 50% of the money in Bloomberg's Billionaire Index. Once again, outrageous! Congradulations for John Menard, number 81. You're safe... for now. 
+
+```{r}
+ggplot(data = new_billionaires, aes(x = 500 - Rank, y = Total_Net_Worth_Bil)) +
+  geom_point(size = 0.5) +
+  theme_bw() +
+  geom_vline(xintercept = 419) +
+  labs(title = "Total Net Worth of Ranked Billionaires on the Bloomberg Billionaire Index", y = "Net Worth in Billions", x = "Rank on the Index (1 = Poorest, 500 = Least Poor)")
+```
+
+Here is our original plot with the dividing line where 50% of the total wealth lies on either side of it. Really puts things into perspective, huh.
+
+```{r}
+ggplot(data = new_billionaires, aes(x = firstLetter)) +
+  geom_bar(width = 1, color = 'black', fill = "light gray") +
+  theme_bw() +
+  scale_y_continuous(breaks = seq(0, 60, by = 5)) +
+  labs(title = "Number of Billionaires on the Bloomberg Billionaire Index by First Initial", y = "Number of Billionaires", x = "First Initial")
+```
+
+Obviously my previous commentary was satiricle, but we've finally arrived at some real statistics. Things are looking up for the James' of the world! I just feel for the Beths, Franks, Ians, and Oswalds of the world.
+
+## COVID Peaks
+
+```{r}
+stateCOVID <- read_excel("../dataraw/State COVID Data (1).xlsx")
+
+stateCOVIDdata = stateCOVID %>%
+  rename(state = States)
+
+stateCOVIDdata$state[18] = "Louisiana"
+stateCOVIDdata$state[49] = "Wisconsin"
+stateCOVIDdata$state[48] = "West Virginia"
+stateCOVIDdata$state[21] = "Massachusetts"
+
+plot_usmap(data = stateCOVIDdata, regions = "states", values = "PP100T", color = "maroon") +
+  scale_fill_continuous(low = "white", high = "red", name = "Peak per 100,000", label = scales::comma) + 
+  labs(title = "United States", subtitle = "Summer 2020 COVID Peak per 100,000") +
+  theme(legend.position = "right")
+```
+
+This plot displays the peak number of COVID cases per 100,000 people in each state over Summer of 2020. Just as a refresher this was the second wave of COVID, after we started backing down pretty unanimously from initial restrictions put up after the first wave, and overall people on average stopped taking it as seriously. Certain states that got hit hard in the first wave before we really knew how to handle COVID, namely states in the northeast like New York, wound up seeing almost no second wave at all, while places that experience high summer traffic like Florida or Nevada and didn't properly keep consistent restrictions saw very high numbers.
+
+
+
+
+
+
+
+
+***
+```{r}
+sessionInfo()
+```

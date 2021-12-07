@@ -1,6 +1,6 @@
 ---
 title: "Project 2A: Galton Data"
-author: "PUT YOUR NAME HERE"
+author: "James Kolesar"
 date: '`r format(Sys.time(), "%A, %B %d, %Y @ %I:%M %p")`'
 output: 
   html_document: 
@@ -23,22 +23,25 @@ knitr::opts_chunk$set(
 ### Packages Used
 
 ```{r loadpackages}
-
+library(readr)
+library(dplyr)
+library(DT)
+library(ggplot2)
 ```
 
 ### Datasets Used
 
 ```{r loaddatamain}
-
+data_main = read_csv('https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/galtonfamiliesmain.csv')
 ```
 
 ```{r loaddatasub}
-
+data_sub = read_csv('https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/galtonfamiliessub.csv')
 ```
 
 ### Collaborators
 
-ADD NAMES HERE OR WRITE "None"
+None :)
 
 <hr>
 
@@ -69,7 +72,17 @@ Load the `galtonfamiliesmain.csv` and `galtonfamiliessub.csv` datasets above und
    * in order of height within each sex of child
 
 ```{r assembledata1}
+new_data_sub = data_sub %>%
+   transmute(FamilyID, Children, Father = FatherR + 60, Mother = MotherR + 60, Child, Height = HeightR + 60)
 
+Galton_dataset_1 = data_main %>%
+   mutate(FamilyID = as.numeric(ifelse(FamilyID == "136A", 205, FamilyID))) %>%
+   bind_rows(new_data_sub) %>%
+   mutate(Mother = 1.08*Mother, Height = ifelse(Child == "Son", Height, Height*1.08), midparent = (Father+Mother)/2, Child = tolower(Child)) %>%
+   rename(familyid = FamilyID, num_children = Children, father_ht = Father, mother_ht = Mother, child_sex = Child, child_ht = Height) %>%
+   arrange(familyid, desc(child_sex), child_ht)
+
+datatable(Galton_dataset_1)
 ```
 
 #### Dataset #2
@@ -77,7 +90,12 @@ Load the `galtonfamiliesmain.csv` and `galtonfamiliessub.csv` datasets above und
 Select the variables `familyid` and `num_children` and reduce the dataset so that it contains only one row per family. Again, use `datatable()` from the DT package to display the result.
 
 ```{r assembledata2}
+Galton_dataset_2 = Galton_dataset_1 %>%
+   select(familyid, num_children) %>%
+   group_by(familyid) %>%
+   summarize(familyid = mean(familyid), num_children = mean(num_children))
 
+datatable(Galton_dataset_2)
 ```
 
 ### Part 1: Parent/Child Heights
@@ -107,7 +125,16 @@ Also include the following.
 * use `theme()` to move the legend to the bottom of the scatterplot
 
 ```{r updatedscatterplot1}
-
+#It should be noted that I actually really enjoy the default colors used by ggplot, so I just used them in my scale_color_manual() call.
+ggplot(data = Galton_dataset_1, aes(x = child_ht, y = midparent, color = child_sex)) +
+   geom_point(alpha = 0.4, size = 2.5) +
+   scale_x_continuous(breaks = seq(60, 79, by = 1)) +
+   scale_y_continuous(breaks = seq(64, 75, by = 1)) +
+   coord_fixed() +
+   labs(x = "Child Height (inches)", y = "Average Height of Parents (inches)", title = "Average Height of Parents by Child Height", color = "Gender of Child", subtitle = "(Heights of all women were multiplied by 1.08)") +
+   theme_linedraw() +
+   theme(legend.position = "bottom") +
+   scale_color_manual(values = c('#F8766D','#00BFC4'))
 ```
 
 #### Updated Scatterplot #2
@@ -115,7 +142,15 @@ Also include the following.
 Remove the color coding for sons versus daughters from your plot, as well as any other coding related to it. Instead, choose n single color for the points and adjust both `size` and transparency (`alpha`) as needed to correct for overplotting and help show the density of points. Reset the `aes` so child height is the `y` variable and midparent height is the `x` variable. Add a fitted *straight* line to the plot. Update your `labs` accordingly.
 
 ```{r updatedscatterplot2}
-
+ggplot(data = Galton_dataset_1, aes(x = midparent, y = child_ht)) +
+   geom_point(alpha = 0.2, size = 1.5, color = "#619CFF") +
+   scale_y_continuous(breaks = seq(60, 79, by = 1)) +
+   scale_x_continuous(breaks = seq(64, 75, by = 1)) +
+   coord_fixed() +
+   labs(x = "Average Height of Parents (inches)", y = "Child Height (inches)", title = "Child Height by Average Height of Parents", color = "Gender of Child", subtitle = "(Heights of all women were multiplied by 1.08)") +
+   theme_linedraw() +
+   geom_smooth(method = lm, color = "black", se = FALSE)
+?geom_smooth
 ```
 
 ### Part 2: Number of Children
@@ -123,7 +158,12 @@ Remove the color coding for sons versus daughters from your plot, as well as any
 Create a barplot to show the distribution of the number of children per family. Set the bars to something other than the default `width`. Scale the x-axis so that there is a tick mark for each bar. Choose appropriate colors, labels, themes, and/or and other types of formatting that you feel will enhance the meaning or visual appearance of the plot.
 
 ```{r childrenbarplot}
-
+ggplot(data = Galton_dataset_2, aes(x = num_children)) +
+   geom_bar(width = 1, color = "black", fill = "light grey") +
+   scale_x_continuous(breaks = seq(0, 15, by = 1)) +
+   scale_y_continuous(breaks = seq(0, 35, by = 2)) +
+   labs(x = "Number of Children", y = "Family Count", title = "Amount of Families by Number of Children") +
+   theme_linedraw()
 ```
 
 ## Questions
@@ -132,19 +172,19 @@ Create a barplot to show the distribution of the number of children per family. 
 
 **ANSWER**
 
-ERASE THIS TEXT AND ANSWER QUESTION HERE
+Obvious props to Galton for being the data-analysis trailblazer that he was, but plots have definitely come a long way since his time. The biggest improvement between Galton's plots and the ones made during this project is the clarity of the density of points. Granted, without being able to adjust an alpha level it's much more difficult to visually represent multiple data points falling onto the same coordinate point, but some sort of color gradient or size factor could've been applied to the numbers he threw onto the paper. The rudimentary groupings also lead to a bit of necessary clutter around the axes, although to Galton's credit it's still quite readable despite being pretty packed. In terms of modifications, whenever dealing with relatively discrete data where certain coordinates will have multiple data points, my go-to in R is to apply some sort of jitter effect to my plot. Alpha works alright on its own, especially when we aren't dealing with multiple thousands of data points, but I think when it's combined with jitter it winds up adding much more clarity regarding density.
 
 **Question 2:** Explain the rationale behind the choices you made when creating your scatterplots and barplot, such as size, color, transparency, or other features. What motivated your decisions? 
 
 **ANSWER**
 
-ERASE THIS TEXT AND ANSWER QUESTION HERE
+My primary motivation behind stylistic choices came from keeping things readable while making them look nice/satisfying. The colors I used for the scatterplots were all taken from ggplot's default color palette (which I'm very much a fan of.) For the first histogram I wanted to go for somewhat gender-neutral colors, as just going for bright pink and navy blue seems just a touch problematic, and colors that contrasted each other while being similar in lightness as to not wash the other one out when the transparency was applied. I wanted my points to be big enough so that they would overlap slightly at least with nearby points, creating a darker, more opaque color wherever the points were densely located, but not so big that it's impossible to tell what points fall exactly where and some wind up obscuring others. The second scatterplot's color wasn't super important, just something not too much like white or black to let them stick out from the background and keep them from obscuring the fitted line. Since we didn't have the different colors to help keep track of our different points I turned the alpha level and size down a few notches, just to give a bit more finesse to our density clarity. For the bar graph I pretty much just opted for the style I thought looked the nicest. I mean look at it. That's a nice looking bar graph. I also added a scale for the y-axis to show more tick marks, which I think is important for clarity of information in any bar graph.
 
 **Question 3:** Considering best practices, how does using `coord_fixed()` enhance the authenticity of the information shown in the scatterplots, such as the relationship and spread of the data?
 
 **ANSWER**
 
-ERASE THIS TEXT AND ANSWER QUESTION HERE
+One of the oldest tricks in the book in terms of data manipulation is to alter the scale of one or both of our axes in order to emphasize or deemphasize the effect of one on the other. Sometimes this scaling is necessary, like if we were comparing SAT score to college GPA, two values with wildly different scales, however in this case we were examining the relationship between the heights of two adults (for all intents and purposes) so matching the scale of our axes makes total sense. In terms of authenticity, removing any sort of manipulative tactics we have at our disposal as statisticians means any relationships we see in our data visualizations are that much more likely to be real, which is exactly what we're doing by applying `coord_fixed()` to our plot.
 
 ***
 ```{r}

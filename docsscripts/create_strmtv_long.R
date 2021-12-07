@@ -4,12 +4,12 @@
 
 # read in the strmtv.rds data file
 
-ERASE THIS AND ENTER THE PROPER CODE
+strmtvData = readRDS("dataprocessed/strmtv.rds")
 
 
 # enter the filename and pivot the file into into a long format
 
-strmtv_long <- pivot_longer(INPUT FILE NAME HERE,
+strmtv_long <- pivot_longer(strmtvData,
   cols = c(Netflix, Hulu, `Prime Video`, `Disney+`),
   names_to = "Service",
   values_to = "YesNo"
@@ -19,9 +19,9 @@ strmtv_long <- pivot_longer(INPUT FILE NAME HERE,
 
 # write strmtv_long to an .rds file
 
-ERASE THIS AND ENTER THE PROPER CODE
+saveRDS(strmtv_long, file = "dataprocessed/strmtv_long.rds")
 
 
 # add strmtv_long to streamingcontent.Rdata
 
-cgwtools::resave(strmtv_long, file = "streamingcontent.Rdata")
+cgwtools::resave(strmtv_long, file = "dataprocessed/streamingcontent.Rdata")
