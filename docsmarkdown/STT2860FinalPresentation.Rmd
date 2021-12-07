@@ -36,7 +36,7 @@ ggplot(data = new_billionaires, aes(x = 500 - Rank, y = Total_Net_Worth_Bil)) +
   labs(title = "Total Net Worth of Ranked Billionaires on the Bloomberg Billionaire Index", y = "Net Worth in Billions", x = "Rank on the Index (1 = Poorest, 500 = Least Poor)")
 ```
 
-This is outrageous! Where's Frits Goldschmeding? Cliff Obrecht? It looks like Wall Street is due for another occupation, but before we get our pitchforks and picket signs, we should figure out who exactly should be protesting whom.
+This plot depicts the overall net worth of all the billionaires on the index in ranked order. The uniform distance between each of the data points on the x axis displays the distribution of wealth amongst these top 500 billionaires. By applying a log transformation the transition between lower ranked billionaires could've been more apparent, however the whole point of the plot is to highlight the wealth disparity (somewhat in jest) between the different members on the list, so keeping things as is is what best accomplishes that goal. With that all said, this is outrageous! Where's Frits Goldschmeding? Cliff Obrecht? It looks like Wall Street is due for another occupation, but before we get our pitchforks and picket signs, we should figure out who exactly should be protesting whom.
 
 ```{r}
 billVector = c(rep(NULL, 500))
@@ -77,7 +77,7 @@ ggplot(data = new_billionaires, aes(x = firstLetter)) +
   labs(title = "Number of Billionaires on the Bloomberg Billionaire Index by First Initial", y = "Number of Billionaires", x = "First Initial")
 ```
 
-Obviously my previous commentary was satiricle, but we've finally arrived at some real statistics. Things are looking up for the James' of the world! I just feel for the Beths, Franks, Ians, and Oswalds of the world.
+Obviously my previous commentary was satiricle, but we've finally arrived at some real statistics. Things are looking up for the James' of the world! I just feel for the Beths, Franks, Ians, and Oswalds out there.
 
 ## COVID Peaks
 
@@ -94,7 +94,7 @@ stateCOVIDdata$state[21] = "Massachusetts"
 
 plot_usmap(data = stateCOVIDdata, regions = "states", values = "PP100T", color = "maroon") +
   scale_fill_continuous(low = "white", high = "red", name = "Peak per 100,000", label = scales::comma) + 
-  labs(title = "United States", subtitle = "Summer 2020 COVID Peak per 100,000") +
+  labs(title = "United States", subtitle = "Summer 2020 COVID Peak Cases per 100,000 per State") +
   theme(legend.position = "right")
 ```
 
